@@ -4,8 +4,9 @@ const axios = require('axios');
 const moment = require('moment');
 
 const config = {
-    url: 'https://mygmrs.network/nodes',
-    path: '/var/lib/asterisk/rpt_extnodes_gmrs',
+    url: 'https://network.mygmrs.com/nodes',
+    // path: '/var/lib/asterisk/rpt_extnodes_gmrs',
+    path: './rpt_extnodes_gmrs',
     interval: 10 * 60 * 1000
 };
 
@@ -18,22 +19,28 @@ let recentlyUpdated = false;
 
 const stat = util.promisify(fs.stat);
 stat(config.path)
-    .then(function (stats) {
+    .then(stats => {
         const modified = moment(stats.mtime);
 
         console.log('Current time:', moment.utc().format());
         console.log('Last updated:', stats.mtime);
+        console.log('File size:', stats.size);
 
         recentlyUpdated = moment.duration(moment().diff(modified)).as('milliseconds') < config.interval;
+
+        if (stats.size === 0) {
+            console.log('Empty file detected, forcing update');
+            recentlyUpdated = false;
+        }
     })
-    .catch(function (err) {
+    .catch(err => {
         if (err.code === 'ENOENT') {
             console.log('File does not exist yet (%s)', config.path);
         } else {
             console.error(err.message);
         }
     })
-    .then(function () {
+    .then(() => {
         if (!recentlyUpdated) {
             fetchNodeList();
         } else {
@@ -45,16 +52,16 @@ function fetchNodeList() {
     console.log('Fetching node list (%s)...', config.url);
 
     axios.get(config.url)
-        .then(function (response) {
+        .then(response => {
             fs.writeFile(config.path, response.data)
-                .then(function () {
+                .then(() => {
                     console.log('Node list saved successfully');
                 })
-                .catch(function (err) {
+                .catch(err => {
                     console.error(err.message);
                 });
         })
-        .catch(function (err) {
+        .catch(err => {
             console.error(err.message);
         });
 }
