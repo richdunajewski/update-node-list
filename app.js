@@ -5,8 +5,8 @@ const moment = require('moment');
 
 const config = {
     url: 'https://network.mygmrs.com/nodes',
-    // path: '/var/lib/asterisk/rpt_extnodes_gmrs',
-    path: './rpt_extnodes_gmrs',
+    path: '/var/lib/asterisk/rpt_extnodes_gmrs',
+    // path: './rpt_extnodes_gmrs',
     interval: 10 * 60 * 1000
 };
 
